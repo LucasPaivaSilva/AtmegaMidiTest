@@ -66,7 +66,6 @@ int GetOnTime(int freq);
 void HandleNoteOn(byte channel, byte pitch, byte velocity);
 ISR(PCINT0_vect);
 ISR(TIMER1_COMPA_vect);
-ISR(PCINT2_vect);
 
 
 
@@ -74,27 +73,24 @@ ISR(PCINT2_vect);
 int main(void)
 {
     
-	DDRC = 0xFF; 
-	DDRB  = 0x01;	
-	PORTB = 0b111110;
-	PORTD = 0x00;
+	DDRC = 0xFF;
+	DDRB  = 0b000011;
+	PORTB = 0b111100;
 	
 	//interrupção dos bots
-	PCICR = (1<<PCIE0) | (1<<PCIE2);
+	PCICR = (1<<PCIE0);
 	PCMSK0 = (1<<PCINT3) | (1<<PCINT4) | (1<<PCINT5);
-	PCMSK2 = (1<<PCINT16);
 	
 	//Timer
 	TCCR1A = 0x00;                        
 	TCCR1B = (1 << CS11) | (1 << WGM12); 
 	
-// 	OCR1A   = 12300;
-// 	TCNT1   = 0;             
-// 	TIMSK1 |= (1 << OCIE1A);  
+	OCR1A   = 12300;
+	TCNT1   = 0;        
+	TIMSK1 |= (1 << OCIE1A);       
 	
 		
 	sei();
-	
 	MIDI.begin(MIDI_CHANNEL_OMNI);  
 	MIDI.setHandleNoteOn(HandleNoteOn); 
 	
@@ -105,9 +101,8 @@ int main(void)
 	ChangePW(2, MIDIChar);										//Atualiza o valor de MIDIChar p PW(sem alterar o mesmo)
     while (1) 
     {
-		if (1)
-		{
-			switch (StateSelection)
+		MIDI.read();
+		switch (StateSelection)
 			{
 				case 0:
 				ModifyDisplay(MenuChar, MenuSelectionBar);
@@ -133,7 +128,6 @@ int main(void)
 			debouncePB3 = 0;
 			debouncePB4 = 0;
 			debouncePB5 = 0;
-		}
     }
 }
 
@@ -384,11 +378,6 @@ ISR(PCINT0_vect) //interrupção do TC1
 		PB3Flag = 1;
 		debouncePB3 = 1;
 	}
-}
-
-ISR(PCINT2_vect) //interrupção do TC1
-{
-	MIDI.read();
 }
 
 ISR(TIMER1_COMPA_vect)
